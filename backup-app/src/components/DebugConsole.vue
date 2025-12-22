@@ -164,6 +164,15 @@ function getLevelBg(level: LogEntry['level']): string {
 
 function handleDragStart(e: MouseEvent) {
   if ((e.target as HTMLElement).closest('button')) return
+  
+  const container = containerRef.value
+  if (container) {
+    const rect = container.getBoundingClientRect()
+    if (position.value.x === 0 && position.value.y === 0) {
+      position.value = { x: rect.left, y: rect.top }
+    }
+  }
+  
   isDragging.value = true
   dragStart.value = { x: e.clientX, y: e.clientY }
 }
@@ -176,15 +185,33 @@ function handleResizeStart(e: MouseEvent) {
 
 function handleMouseMove(e: MouseEvent) {
   if (isDragging.value) {
-    const newX = position.value.x + (e.clientX - dragStart.value.x)
-    const newY = position.value.y + (e.clientY - dragStart.value.y)
-    position.value = { x: newX, y: newY }
+    const deltaX = e.clientX - dragStart.value.x
+    const deltaY = e.clientY - dragStart.value.y
+    
+    const container = containerRef.value
+    if (container) {
+      const rect = container.getBoundingClientRect()
+      const currentX = position.value.x || rect.left
+      const currentY = position.value.y || rect.top
+      
+      const newX = currentX + deltaX
+      const newY = currentY + deltaY
+      
+      const maxX = window.innerWidth - rect.width
+      const maxY = window.innerHeight - rect.height
+      
+      position.value = {
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY)),
+      }
+    }
+    
     dragStart.value = { x: e.clientX, y: e.clientY }
   } else if (isResizing.value) {
     const deltaX = e.clientX - resizeStart.value.x
     const deltaY = e.clientY - resizeStart.value.y
-    const newWidth = Math.max(400, resizeStart.value.width + deltaX)
-    const newHeight = Math.max(300, resizeStart.value.height + deltaY)
+    const newWidth = Math.max(400, Math.min(resizeStart.value.width + deltaX, window.innerWidth))
+    const newHeight = Math.max(300, Math.min(resizeStart.value.height + deltaY, window.innerHeight))
     size.value = { width: newWidth, height: newHeight }
   }
 }

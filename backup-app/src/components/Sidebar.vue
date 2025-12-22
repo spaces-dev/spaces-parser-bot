@@ -58,10 +58,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, defineAsyncComponent } from 'vue'
 import type { User } from '@/types'
 import { clearCookies } from '@/utils/storage'
-import DebugConsole from './DebugConsole.vue'
+
+const DebugConsole = defineAsyncComponent(() => import('./DebugConsole.vue'))
 
 interface Props {
   user: User | null

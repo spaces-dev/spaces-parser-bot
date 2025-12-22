@@ -27,6 +27,7 @@
       <div
         v-for="file in paginatedFiles"
         :key="file.id"
+        v-memo="[file.id, getFileProgress(file.id)?.status, getFileProgress(file.id)?.progress]"
         :class="[
           'p-3 bg-dark-hover rounded border',
           getFileBorderClass(file.id),
