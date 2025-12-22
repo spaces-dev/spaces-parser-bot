@@ -272,10 +272,8 @@ const displaySid = computed({
     return authStore.sid
   },
   set: (value: string) => {
-    // Разрешаем редактирование только если пользователь не авторизован
-    if (!authStore.user) {
-      authStore.sid = value
-    }
+    // Всегда разрешаем установку значения - поле само будет disabled когда нужно
+    authStore.sid = value
   },
 })
 
