@@ -1,5 +1,5 @@
 <template>
-  <div class="w-64 bg-dark-surface bg-opacity-50 backdrop-blur-sm border-r border-dark-border p-6 min-h-screen flex flex-col">
+  <div class="w-64 bg-dark-surface/50 backdrop-blur-sm border-r border-dark-border p-6 min-h-screen flex flex-col">
     <div class="mb-8 text-center">
       <h1 class="text-2xl font-bold text-white">Spcs Backup</h1>
     </div>

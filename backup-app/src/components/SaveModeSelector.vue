@@ -9,7 +9,7 @@
         :class="[
           'relative flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all',
           mode === 'structure'
-            ? 'bg-blue-600 bg-opacity-20 border-blue-500 shadow-lg shadow-blue-500/20'
+            ? 'bg-blue-600/20 border-blue-500 shadow-lg shadow-blue-500/20'
             : 'bg-dark-hover border-dark-border hover:border-gray-500',
           disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
         ]"
@@ -35,7 +35,7 @@
         :class="[
           'relative flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all',
           mode === 'flat'
-            ? 'bg-blue-600 bg-opacity-20 border-blue-500 shadow-lg shadow-blue-500/20'
+            ? 'bg-blue-600/20 border-blue-500 shadow-lg shadow-blue-500/20'
             : 'bg-dark-hover border-dark-border hover:border-gray-500',
           disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
         ]"

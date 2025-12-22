@@ -152,11 +152,11 @@ function getLevelColor(level: LogEntry['level']): string {
 function getLevelBg(level: LogEntry['level']): string {
   switch (level) {
     case 'error':
-      return 'bg-red-500 bg-opacity-10'
+      return 'bg-red-500/10'
     case 'warn':
-      return 'bg-yellow-500 bg-opacity-10'
+      return 'bg-yellow-500/10'
     case 'info':
-      return 'bg-blue-500 bg-opacity-10'
+      return 'bg-blue-500/10'
     default:
       return ''
   }

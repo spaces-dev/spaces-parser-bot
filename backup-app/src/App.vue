@@ -3,13 +3,13 @@
     class="min-h-screen bg-dark-bg flex relative"
     :style="showNewYearBg ? newYearStyle : {}"
   >
-    <div class="absolute inset-0 bg-dark-bg bg-opacity-80" />
+    <div class="absolute inset-0 bg-dark-bg/80" />
     <div class="relative z-10 flex w-full">
       <Sidebar :user="authStore.user" @logout="handleLogout" />
 
       <div class="flex-1 p-8">
         <div class="max-w-4xl mx-auto">
-          <div class="bg-dark-surface bg-opacity-50 backdrop-blur-sm rounded-lg border border-dark-border p-6 mb-6">
+          <div class="bg-dark-surface/50 backdrop-blur-sm rounded-lg border border-dark-border p-6 mb-6">
             <div class="space-y-4">
               <div class="flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-white">Авторизация</h2>
@@ -165,7 +165,7 @@
 
           <div
             v-if="backupStore.errors.length > 0"
-            class="bg-dark-surface bg-opacity-50 backdrop-blur-sm rounded-lg border border-red-500 border-opacity-30 p-6"
+            class="bg-dark-surface/50 backdrop-blur-sm rounded-lg border border-red-500/30 p-6"
           >
             <h3 class="text-lg font-semibold text-red-400 mb-3">Ошибки</h3>
             <div class="space-y-2">

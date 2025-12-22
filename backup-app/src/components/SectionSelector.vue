@@ -18,7 +18,7 @@
         :class="[
           'flex items-center p-4 rounded-lg border cursor-pointer transition-colors',
           selected.includes(section.id)
-            ? 'bg-blue-500 bg-opacity-20 border-blue-500'
+            ? 'bg-blue-500/20 border-blue-500'
             : 'bg-dark-hover border-dark-border hover:border-gray-600',
           disabled ? 'opacity-50 cursor-not-allowed' : '',
         ]"

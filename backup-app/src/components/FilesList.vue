@@ -1,5 +1,5 @@
 <template>
-  <div v-if="files.length > 0" class="bg-dark-surface bg-opacity-50 backdrop-blur-sm rounded-lg border border-dark-border p-6">
+  <div v-if="files.length > 0" class="bg-dark-surface/50 backdrop-blur-sm rounded-lg border border-dark-border p-6">
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-semibold text-white">Найдено файлов: {{ files.length }}</h3>
       <div v-if="totalPages > 1" class="flex items-center gap-2">
