@@ -1,6 +1,6 @@
 import type { File } from '../types';
 import type { SaveMode } from '../types';
-import { sanitizeFileName } from './formatters';
+import { sanitizeFileName, extractFileNameFromUrl } from './formatters';
 import { config } from '../config';
 import axios from 'axios';
 import { extractDownloadUrlFromFilePage } from './downloader';
@@ -51,9 +51,31 @@ export async function downloadAndSaveFileOnServer(
     }
   }
   
-  const filePath = saveMode === 'flat' 
-    ? `${file.name}${file.extension}`
-    : file.path;
+  let finalName = file.name;
+  let finalExtension = file.extension;
+  
+  if (fileUrl) {
+    const urlFileInfo = extractFileNameFromUrl(fileUrl);
+    if (urlFileInfo.name && !finalName) {
+      finalName = urlFileInfo.name;
+    }
+    if (urlFileInfo.extension) {
+      finalExtension = urlFileInfo.extension;
+    }
+  }
+  
+  let filePath: string;
+  if (saveMode === 'flat') {
+    filePath = `${finalName}${finalExtension}`;
+  } else {
+    if (file.path && file.path.includes('/')) {
+      const pathParts = file.path.split('/');
+      pathParts[pathParts.length - 1] = `${finalName}${finalExtension}`;
+      filePath = pathParts.join('/');
+    } else {
+      filePath = `${finalName}${finalExtension}`;
+    }
+  }
   
   try {
     await axios.post(`${config.proxyUrl}/api/download-and-save`, {

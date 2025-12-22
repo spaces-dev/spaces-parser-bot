@@ -254,7 +254,9 @@ function App() {
         
         console.log(`Section ${section.name}: found ${files.length} files`);
         
-        allFiles.push(...files);
+        const existingIds = new Set(allFiles.map(f => f.id));
+        const newFiles = files.filter(f => !existingIds.has(f.id));
+        allFiles.push(...newFiles);
         folderMap.set(sectionId, { folder: rootFolder, sectionId });
       }
       
@@ -324,6 +326,12 @@ function App() {
     cookiesObj: Record<string, string>
   ): Promise<void> => {
     if (!state.user) return;
+
+    const currentProgress = state.fileProgress.get(file.id);
+    if (currentProgress?.status === 'completed' || currentProgress?.status === 'downloading') {
+      console.log(`File ${file.name}${file.extension} already ${currentProgress.status}, skipping`);
+      return;
+    }
 
     setState(prev => {
       const newProgress = new Map(prev.fileProgress);

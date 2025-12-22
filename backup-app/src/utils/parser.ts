@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio';
 import type { File, Folder, UserSection } from '../types';
+import { extractFileNameFromUrl } from './formatters';
 
 export function extractUsername(url: string, html: string): string {
   const urlMatch = url.match(/\/files\/user\/([^\/]+)\//);
@@ -390,12 +391,25 @@ export function parseFiles(html: string): File[] {
         ? downloadLink 
         : `https://spaces.im${downloadLink}`;
     }
+    
+    if ((!name || !extension) && (directUrl || downloadLink)) {
+      const urlToCheck = directUrl || downloadLink;
+      if (urlToCheck) {
+        const urlFileInfo = extractFileNameFromUrl(urlToCheck);
+        if (urlFileInfo.name && !name) {
+          name = urlFileInfo.name;
+        }
+        if (urlFileInfo.extension && !extension) {
+          extension = urlFileInfo.extension;
+        }
+      }
+    }
       
       console.log(`Found file: ${name}${extension} (id: ${id}, type: ${type}, downloadLink: ${downloadLink})`);
       files.push({
         id,
-        name,
-        extension,
+        name: name || `file_${id}`,
+        extension: extension || '',
         type,
         downloadUrl: downloadLink,
         directUrl: directUrl 

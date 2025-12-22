@@ -143,10 +143,58 @@ app.post('/api/download-and-save', async (req, res) => {
       timeout: 300000,
     });
     
+    let finalFilePath = filePath;
+    let urlExt = '';
+    try {
+      const urlObj = new URL(fileUrl);
+      urlExt = path.extname(urlObj.pathname);
+    } catch {
+      const match = fileUrl.match(/\/([^\/\?]+)$/);
+      if (match) {
+        const filename = match[1];
+        const lastDotIndex = filename.lastIndexOf('.');
+        if (lastDotIndex > 0 && lastDotIndex < filename.length - 1) {
+          urlExt = filename.substring(lastDotIndex);
+        }
+      }
+    }
+    
+    const currentExt = path.extname(filePath);
+    
+    if (!currentExt && urlExt) {
+      finalFilePath = filePath + urlExt;
+    } else if (!currentExt && !urlExt) {
+      const contentType = downloadResponse.headers['content-type'];
+      const contentTypeMap = {
+        'image/jpeg': '.jpg',
+        'image/png': '.png',
+        'image/gif': '.gif',
+        'image/webp': '.webp',
+        'video/mp4': '.mp4',
+        'video/avi': '.avi',
+        'video/mkv': '.mkv',
+        'audio/mpeg': '.mp3',
+        'audio/mp3': '.mp3',
+        'audio/wav': '.wav',
+        'application/pdf': '.pdf',
+        'application/zip': '.zip',
+        'text/plain': '.txt',
+        'text/html': '.html',
+        'application/json': '.json',
+      };
+      
+      if (contentType) {
+        const ext = contentTypeMap[contentType.split(';')[0].trim()];
+        if (ext) {
+          finalFilePath = filePath + ext;
+        }
+      }
+    }
+    
     const baseDir = path.join(DOWNLOADS_DIR, username || 'default');
     const fullPath = saveMode === 'flat' 
-      ? path.join(baseDir, path.basename(filePath))
-      : path.join(baseDir, filePath);
+      ? path.join(baseDir, path.basename(finalFilePath))
+      : path.join(baseDir, finalFilePath);
     
     const dir = path.dirname(fullPath);
     if (!fs.existsSync(dir)) {

@@ -111,10 +111,21 @@ function extractFolderId(url: string): string {
 }
 
 export function collectAllFiles(folder: Folder): File[] {
-  let files = [...folder.files];
-  folder.folders.forEach(subFolder => {
-    files = files.concat(collectAllFiles(subFolder));
+  const filesMap = new Map<string, File>();
+  
+  folder.files.forEach(file => {
+    filesMap.set(file.id, file);
   });
-  return files;
+  
+  folder.folders.forEach(subFolder => {
+    const subFiles = collectAllFiles(subFolder);
+    subFiles.forEach(file => {
+      if (!filesMap.has(file.id)) {
+        filesMap.set(file.id, file);
+      }
+    });
+  });
+  
+  return Array.from(filesMap.values());
 }
 
