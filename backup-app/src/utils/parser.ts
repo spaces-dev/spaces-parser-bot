@@ -187,43 +187,61 @@ export function parseUserSections(html: string, username: string, baseUrl: strin
 export function parseFolders(html: string): Folder[] {
   const $ = cheerio.load(html);
   const folders: Folder[] = [];
+  const processedIds = new Set<string>();
   
   console.log('Parsing folders...');
   
-  $('a.js-dir, a[data-nid][href*="/list/"]').each((_, elem) => {
-    const $elem = $(elem);
-    const href = $elem.attr('href');
-    const id = $elem.attr('data-nid');
-    
-    let name = $elem.find('.js-dir_name').text().trim();
-    if (!name) {
-      name = $elem.find('.list-link__name').text().trim();
-    }
-    if (!name) {
-      name = $elem.find('b').first().text().trim();
-    }
-    
-    const fileCountText = $elem.find('.grey').first().text().trim();
-    const fileCountMatch = fileCountText.match(/(\d+)\s+файл/);
-    const fileCount = fileCountMatch ? parseInt(fileCountMatch[1]) : undefined;
-    
-    console.log(`Folder candidate: href=${href}, id=${id}, name=${name}, fileCountText=${fileCountText}`);
-    
-    if (href && id && name) {
-      const fullUrl = href.startsWith('http') ? href : `https://spaces.im${href}`;
-      console.log(`Found folder: ${name} (id: ${id}, href: ${fullUrl}, files: ${fileCount || 0})`);
-      folders.push({
-        id,
-        name,
-        url: fullUrl,
-        path: '',
-        fileCount,
-        files: [],
-        folders: [],
-      });
-    } else {
-      console.log(`Skipped folder element (href: ${href}, id: ${id}, name: ${name})`);
-    }
+  const folderSelectors = [
+    'a.js-dir',
+    'a[data-nid][href*="/list/"]',
+    'a[data-nid][href*="/pictures/list/"]',
+    'a[data-nid][href*="/music/list/"]',
+    'a[data-nid][href*="/video/list/"]',
+    'a[data-nid][href*="/files/list/"]',
+    '.list-link__short[href*="/list/"]',
+    '.list-link-darkblue[href*="/list/"]',
+  ];
+  
+  folderSelectors.forEach(selector => {
+    $(selector).each((_, elem) => {
+      const $elem = $(elem);
+      const href = $elem.attr('href');
+      const id = $elem.attr('data-nid');
+      
+      if (!href || !id || processedIds.has(id)) {
+        return;
+      }
+      
+      let name = $elem.find('.js-dir_name').text().trim();
+      if (!name) {
+        name = $elem.find('.list-link__name').text().trim();
+      }
+      if (!name) {
+        name = $elem.find('b').first().text().trim();
+      }
+      if (!name) {
+        name = $elem.text().trim().split('\n')[0].trim();
+      }
+      
+      const fileCountText = $elem.find('.grey').first().text().trim();
+      const fileCountMatch = fileCountText.match(/(\d+)\s+файл/);
+      const fileCount = fileCountMatch ? parseInt(fileCountMatch[1]) : undefined;
+      
+      if (name && href.includes('/list/')) {
+        processedIds.add(id);
+        const fullUrl = href.startsWith('http') ? href : `https://spaces.im${href}`;
+        console.log(`Found folder: ${name} (id: ${id}, href: ${fullUrl}, files: ${fileCount || 0})`);
+        folders.push({
+          id,
+          name,
+          url: fullUrl,
+          path: '',
+          fileCount,
+          files: [],
+          folders: [],
+        });
+      }
+    });
   });
   
   console.log(`Parsed ${folders.length} folders`);

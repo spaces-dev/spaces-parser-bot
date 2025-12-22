@@ -31,7 +31,7 @@ export async function scanFolder(
   
   if (maxPages && maxPages > 1) {
     for (let page = 2; page <= maxPages; page++) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
       const pageUrl = addPagination(url, page);
       console.log(`Scanning page ${page}: ${pageUrl}`);
       const pageResponse = await fetchPageWithCookies(pageUrl, currentCookies);
@@ -54,7 +54,7 @@ export async function scanFolder(
   console.log(`Scanning ${folders.length} subfolders...`);
   const scannedFolders = [];
   for (const folder of folders) {
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 200));
     const subfolderPath = currentPath ? `${currentPath}/${folder.name}` : folder.name;
     const scannedFolder = await scanFolder(folder.url, currentCookies, subfolderPath, onCookiesUpdate);
     scannedFolders.push(scannedFolder);
