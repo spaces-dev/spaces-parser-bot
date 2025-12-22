@@ -7,6 +7,7 @@ import { fetchPageWithCookies } from './utils/http';
 import { extractCKFromUrl, addCKToUrl } from './utils/url';
 import { config } from './config';
 import { saveCookies, loadCookies, saveUser, loadUser, saveSections, loadSections, clearCookies } from './utils/storage';
+import './utils/logger';
 import { ProgressBar } from './components/ProgressBar';
 import { formatBytes } from './utils/formatters';
 import { isNewYearPeriod } from './utils/date';

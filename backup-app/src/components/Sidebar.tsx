@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import type { User } from '../types';
 import { clearCookies } from '../utils/storage';
+import { DebugConsole } from './DebugConsole';
 
 interface SidebarProps {
   user: User | null;
@@ -7,6 +9,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ user, onLogout }: SidebarProps) {
+  const [isConsoleOpen, setIsConsoleOpen] = useState(false);
+
   const handleLogout = () => {
     clearCookies();
     onLogout();
@@ -51,13 +55,23 @@ export function Sidebar({ user, onLogout }: SidebarProps) {
               <h3 className="text-white font-semibold text-lg mb-4">{user.username}</h3>
             </div>
             
-            <div className="text-center">
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors text-sm font-normal"
-              >
-                Выйти
-              </button>
+            <div className="space-y-2">
+              <div className="text-center">
+                <button
+                  onClick={() => setIsConsoleOpen(true)}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors text-sm font-normal w-full"
+                >
+                  Debug Console
+                </button>
+              </div>
+              <div className="text-center">
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors text-sm font-normal w-full"
+                >
+                  Выйти
+                </button>
+              </div>
             </div>
           </>
         ) : (
@@ -66,6 +80,8 @@ export function Sidebar({ user, onLogout }: SidebarProps) {
           </div>
         )}
       </div>
+      
+      <DebugConsole isOpen={isConsoleOpen} onClose={() => setIsConsoleOpen(false)} />
     </div>
   );
 }
