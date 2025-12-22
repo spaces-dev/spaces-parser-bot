@@ -87,6 +87,31 @@
                   @update:mode="backupStore.setSaveMode"
                 />
 
+                <div class="border-t border-dark-border pt-4">
+                  <label class="block text-sm font-medium text-gray-300 mb-2">
+                    Сканировать по ссылке профиля
+                  </label>
+                  <div class="flex gap-2">
+                    <input
+                      v-model="profileUrl"
+                      type="text"
+                      placeholder="https://spaces.im/mysite/index/username/"
+                      :disabled="backupStore.inProgress || !authStore.user"
+                      class="flex-1 px-4 py-2 bg-dark-hover border border-dark-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 text-sm"
+                    />
+                    <button
+                      @click="handleScanProfile"
+                      :disabled="!profileUrl || backupStore.inProgress || !authStore.user"
+                      class="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                      Сканировать
+                    </button>
+                  </div>
+                  <p class="text-xs text-gray-400 mt-2">
+                    Папки с паролем будут пропущены
+                  </p>
+                </div>
+
                 <div class="flex gap-2">
                   <button
                     v-if="backupStore.scannedFiles.length === 0"
@@ -204,6 +229,7 @@ const authStore = useAuthStore()
 const backupStore = useBackupStore()
 
 const authCollapsed = ref(false)
+const profileUrl = ref('')
 
 const showNewYearBg = computed(() => isNewYearPeriod())
 
@@ -232,6 +258,12 @@ const displaySid = computed({
 function handleLogout() {
   authStore.logout()
   backupStore.resetScan()
+  profileUrl.value = ''
+}
+
+async function handleScanProfile() {
+  if (!profileUrl.value.trim() || !authStore.user) return
+  await backupStore.scanProfile(profileUrl.value.trim())
 }
 
 onMounted(() => {

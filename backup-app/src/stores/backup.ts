@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, shallowRef } from 'vue'
 import type { File, Folder, BackupStatus, SaveMode, FileDownloadProgress } from '@/types'
-import { scanFolder, collectAllFiles } from '@/utils/scanner'
+import { scanFolder, collectAllFiles, scanProfileByUrl } from '@/utils/scanner'
 import { downloadAndSaveFileOnServer } from '@/utils/fileSaver'
 import { createCookiesFromSid } from '@/utils/cookies'
 import { useAuthStore } from '@/stores/auth'
@@ -140,6 +140,65 @@ export const useBackupStore = defineStore('backup', () => {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error'
       status.value = 'error'
       errors.value.push({ file: 'Scan', error: errorMsg })
+    }
+  }
+
+  async function scanProfile(profileUrl: string) {
+    if (!authStore.user) return
+
+    try {
+      const cookiesObj = authStore.fullCookies.sid
+        ? authStore.fullCookies
+        : createCookiesFromSid(authStore.sid)
+      status.value = 'scanning'
+      scannedFiles.value = []
+      fileProgress.value = new Map()
+      downloadedFiles.value = 0
+      downloadedSize.value = 0
+      errors.value = []
+
+      let updatedCookies = cookiesObj
+
+      const { folders, files } = await scanProfileByUrl(
+        profileUrl,
+        updatedCookies,
+        (newCookies) => {
+          updatedCookies = newCookies
+          authStore.updateCookies(newCookies)
+        }
+      )
+
+      console.log(`Total files collected from profile: ${files.length}`)
+
+      const fileProgressMap = new Map<string, FileDownloadProgress>()
+      files.forEach((file) => {
+        fileProgressMap.set(file.id, {
+          fileId: file.id,
+          fileName: `${file.name}${file.extension}`,
+          progress: 0,
+          speed: 0,
+          status: 'pending',
+        })
+      })
+
+      scannedFiles.value = files
+      totalFiles.value = files.length
+      fileProgress.value = fileProgressMap
+      rootFolder.value = folders.length > 0
+        ? {
+            id: 'profile-root',
+            name: 'Profile',
+            url: profileUrl,
+            path: '',
+            files: [],
+            folders,
+          }
+        : null
+      status.value = 'idle'
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      status.value = 'error'
+      errors.value.push({ file: 'Profile Scan', error: errorMsg })
     }
   }
 
@@ -343,6 +402,7 @@ export const useBackupStore = defineStore('backup', () => {
     failedFiles,
     hasFailedFiles,
     scan,
+    scanProfile,
     resetScan,
     downloadSingleFile,
     download,
