@@ -67,7 +67,7 @@
                   v-if="!authStore.user"
                   @click="authStore.loadUserData()"
                   :disabled="!canLoad || backupStore.inProgress"
-                  class="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white text-sm font-normal rounded-md transition-colors"
+                  class="px-4 py-2 bg-gray-700 hover:bg-gray-600 mt-5 text-white text-sm font-normal rounded-md transition-colors"
                 >
                   Войти
                 </button>

@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { logger, type LogEntry } from '@/utils/logger'
 
 interface Props {
@@ -113,16 +113,19 @@ const isResizing = ref(false)
 const dragStart = ref({ x: 0, y: 0 })
 const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 })
 
-const containerStyle = computed(() => ({
-  position: 'absolute',
-  left: position.value.x || '50%',
-  top: position.value.y || '50%',
-  transform: position.value.x || position.value.y ? 'none' : 'translate(-50%, -50%)',
-  width: `${size.value.width}px`,
-  height: `${size.value.height}px`,
-  maxWidth: '95vw',
-  maxHeight: '95vh',
-}))
+const containerStyle = computed(() => {
+  const hasPosition = position.value.x !== 0 || position.value.y !== 0
+  return {
+    position: 'fixed' as const,
+    left: hasPosition ? `${position.value.x}px` : '50%',
+    top: hasPosition ? `${position.value.y}px` : '50%',
+    transform: hasPosition ? 'none' : 'translate(-50%, -50%)',
+    width: `${size.value.width}px`,
+    height: `${size.value.height}px`,
+    maxWidth: '95vw',
+    maxHeight: '95vh',
+  }
+})
 
 const filteredLogs = computed(() => {
   return logs.value.filter((log) => {
@@ -168,13 +171,18 @@ function handleDragStart(e: MouseEvent) {
   const container = containerRef.value
   if (container) {
     const rect = container.getBoundingClientRect()
+    // Инициализируем позицию если она не установлена
     if (position.value.x === 0 && position.value.y === 0) {
       position.value = { x: rect.left, y: rect.top }
+    }
+    // Сохраняем начальную позицию относительно viewport
+    dragStart.value = {
+      x: e.clientX - position.value.x,
+      y: e.clientY - position.value.y
     }
   }
   
   isDragging.value = true
-  dragStart.value = { x: e.clientX, y: e.clientY }
 }
 
 function handleResizeStart(e: MouseEvent) {
@@ -185,18 +193,15 @@ function handleResizeStart(e: MouseEvent) {
 
 function handleMouseMove(e: MouseEvent) {
   if (isDragging.value) {
-    const deltaX = e.clientX - dragStart.value.x
-    const deltaY = e.clientY - dragStart.value.y
-    
     const container = containerRef.value
     if (container) {
       const rect = container.getBoundingClientRect()
-      const currentX = position.value.x || rect.left
-      const currentY = position.value.y || rect.top
       
-      const newX = currentX + deltaX
-      const newY = currentY + deltaY
+      // Вычисляем новую позицию относительно viewport
+      const newX = e.clientX - dragStart.value.x
+      const newY = e.clientY - dragStart.value.y
       
+      // Ограничиваем позицию границами окна
       const maxX = window.innerWidth - rect.width
       const maxY = window.innerHeight - rect.height
       
@@ -205,8 +210,6 @@ function handleMouseMove(e: MouseEvent) {
         y: Math.max(0, Math.min(newY, maxY)),
       }
     }
-    
-    dragStart.value = { x: e.clientX, y: e.clientY }
   } else if (isResizing.value) {
     const deltaX = e.clientX - resizeStart.value.x
     const deltaY = e.clientY - resizeStart.value.y
