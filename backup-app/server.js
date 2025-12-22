@@ -3,6 +3,7 @@ import cors from 'cors';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -192,13 +193,22 @@ app.post('/api/download-and-save', async (req, res) => {
     }
     
     const baseDir = path.join(DOWNLOADS_DIR, username || 'default');
-    const fullPath = saveMode === 'flat' 
+    let fullPath = saveMode === 'flat' 
       ? path.join(baseDir, path.basename(finalFilePath))
       : path.join(baseDir, finalFilePath);
     
     const dir = path.dirname(fullPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
+    }
+    
+    if (fs.existsSync(fullPath)) {
+      const fileBuffer = Buffer.from(downloadResponse.data);
+      const hash = crypto.createHash('md5').update(fileBuffer).digest('hex').substring(0, 8);
+      const ext = path.extname(fullPath);
+      const nameWithoutExt = path.basename(fullPath, ext);
+      const dirPath = path.dirname(fullPath);
+      fullPath = path.join(dirPath, `${nameWithoutExt}_${hash}${ext}`);
     }
     
     fs.writeFileSync(fullPath, Buffer.from(downloadResponse.data));
@@ -222,7 +232,7 @@ app.post('/api/save-file', async (req, res) => {
     }
     
     const baseDir = path.join(DOWNLOADS_DIR, username || 'default');
-    const fullPath = saveMode === 'flat' 
+    let fullPath = saveMode === 'flat' 
       ? path.join(baseDir, path.basename(filePath))
       : path.join(baseDir, filePath);
     
@@ -232,6 +242,15 @@ app.post('/api/save-file', async (req, res) => {
     }
     
     const buffer = Buffer.from(fileData, 'base64');
+    
+    if (fs.existsSync(fullPath)) {
+      const hash = crypto.createHash('md5').update(buffer).digest('hex').substring(0, 8);
+      const ext = path.extname(fullPath);
+      const nameWithoutExt = path.basename(fullPath, ext);
+      const dirPath = path.dirname(fullPath);
+      fullPath = path.join(dirPath, `${nameWithoutExt}_${hash}${ext}`);
+    }
+    
     fs.writeFileSync(fullPath, buffer);
     
     res.json({ success: true, path: fullPath });
