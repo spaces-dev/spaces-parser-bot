@@ -1,14 +1,24 @@
-import { fetchPage } from './http';
+import { fetchPageWithCookies } from './http';
 import { parseFolders, parseFiles, parsePagination, addPagination } from './parser';
+import { mergeCookies } from './cookies';
 import type { Folder, File } from '../types';
 
 export async function scanFolder(
   url: string,
   cookies: Record<string, string>,
-  parentPath: string = ''
+  parentPath: string = '',
+  onCookiesUpdate?: (cookies: Record<string, string>) => void
 ): Promise<Folder> {
   console.log(`Scanning folder: ${url}`);
-  const html = await fetchPage(url, cookies);
+  let currentCookies = cookies;
+  const response = await fetchPageWithCookies(url, currentCookies);
+  const html = response.html;
+  if (Object.keys(response.cookies).length > 0) {
+    currentCookies = mergeCookies(currentCookies, response.cookies);
+    if (onCookiesUpdate) {
+      onCookiesUpdate(currentCookies);
+    }
+  }
   
   const folders = parseFolders(html);
   let files = parseFiles(html);
@@ -22,7 +32,14 @@ export async function scanFolder(
     for (let page = 2; page <= maxPages; page++) {
       const pageUrl = addPagination(url, page);
       console.log(`Scanning page ${page}: ${pageUrl}`);
-      const pageHtml = await fetchPage(pageUrl, cookies);
+      const pageResponse = await fetchPageWithCookies(pageUrl, currentCookies);
+      const pageHtml = pageResponse.html;
+      if (Object.keys(pageResponse.cookies).length > 0) {
+        currentCookies = mergeCookies(currentCookies, pageResponse.cookies);
+        if (onCookiesUpdate) {
+          onCookiesUpdate(currentCookies);
+        }
+      }
       const pageFiles = parseFiles(pageHtml);
       files = files.concat(pageFiles);
       console.log(`Found ${pageFiles.length} files on page ${page}`);
@@ -35,7 +52,7 @@ export async function scanFolder(
   console.log(`Scanning ${folders.length} subfolders...`);
   const scannedFolders = await Promise.all(
     folders.map(folder => 
-      scanFolder(folder.url, cookies, currentPath)
+      scanFolder(folder.url, currentCookies, currentPath, onCookiesUpdate)
     )
   );
   

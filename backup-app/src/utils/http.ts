@@ -3,6 +3,11 @@ import type { AxiosInstance } from 'axios';
 import { formatCookies } from './cookies';
 import { config } from '../config';
 
+export interface FetchResponse {
+  html: string;
+  cookies: Record<string, string>;
+}
+
 export async function fetchPage(
   url: string,
   cookies: Record<string, string>
@@ -11,7 +16,21 @@ export async function fetchPage(
     url,
     cookies,
   });
-  return response.data;
+  return response.data.html || response.data;
+}
+
+export async function fetchPageWithCookies(
+  url: string,
+  cookies: Record<string, string>
+): Promise<FetchResponse> {
+  const response = await axios.post(`${config.proxyUrl}/api/fetch`, {
+    url,
+    cookies,
+  });
+  return {
+    html: response.data.html || response.data,
+    cookies: response.data.cookies || {},
+  };
 }
 
 export async function downloadFileBuffer(

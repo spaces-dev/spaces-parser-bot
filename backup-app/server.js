@@ -37,7 +37,24 @@ app.post('/api/fetch', async (req, res) => {
       timeout: 30000,
     });
     
-    res.send(response.data);
+    const setCookieHeaders = response.headers['set-cookie'] || [];
+    const cookiesFromResponse = {};
+    
+    setCookieHeaders.forEach(cookieStr => {
+      const parts = cookieStr.split(';')[0].split('=');
+      if (parts.length >= 2) {
+        const name = parts[0].trim();
+        const value = parts.slice(1).join('=').trim();
+        if (name && value) {
+          cookiesFromResponse[name] = value;
+        }
+      }
+    });
+    
+    res.json({
+      html: response.data,
+      cookies: cookiesFromResponse,
+    });
   } catch (error) {
     res.status(500).json({ 
       error: error.message,

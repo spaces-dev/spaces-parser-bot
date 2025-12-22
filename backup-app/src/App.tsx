@@ -3,8 +3,8 @@ import { scanFolder, collectAllFiles } from './utils/scanner';
 import { downloadFile } from './utils/downloader';
 import { selectDirectory, saveFilesToDirectory } from './utils/fileSaver';
 import { extractUsername, checkIsCurrentUser, parseUserSections, extractAvatarUrl } from './utils/parser';
-import { parseCookies } from './utils/cookies';
-import { fetchPage } from './utils/http';
+import { parseCookies, createCookiesFromSid, mergeCookies } from './utils/cookies';
+import { fetchPageWithCookies } from './utils/http';
 import { extractCKFromUrl, addCKToUrl } from './utils/url';
 import { config } from './config';
 import { saveCookies, loadCookies, saveUser, loadUser } from './utils/storage';
@@ -19,7 +19,8 @@ import { FilesList } from './components/FilesList';
 import type { BackupState, File, FileDownloadProgress } from './types';
 
 function App() {
-  const [cookies, setCookies] = useState('');
+  const [sid, setSid] = useState('');
+  const [fullCookies, setFullCookies] = useState<Record<string, string>>({});
   const [authCollapsed, setAuthCollapsed] = useState(false);
   const [state, setState] = useState<BackupState>({
     user: null,
@@ -45,19 +46,35 @@ function App() {
     const savedCookies = loadCookies();
     const savedUser = loadUser();
     if (savedCookies) {
-      setCookies(savedCookies);
-      if (savedUser) {
-        setState(prev => ({ ...prev, user: savedUser }));
-        loadUserData();
+      try {
+        const parsed = JSON.parse(savedCookies);
+        if (parsed.sid) {
+          setSid(parsed.sid);
+          setFullCookies(parsed);
+          if (savedUser) {
+            setState(prev => ({ ...prev, user: savedUser }));
+            loadUserData();
+          }
+        }
+      } catch {
+        const parsed = parseCookies(savedCookies);
+        if (parsed.sid) {
+          setSid(parsed.sid);
+          setFullCookies(parsed);
+          if (savedUser) {
+            setState(prev => ({ ...prev, user: savedUser }));
+            loadUserData();
+          }
+        }
       }
     } else if (savedUser) {
       setState(prev => ({ ...prev, user: savedUser }));
     }
   }, []);
 
-  const loadUserData = useCallback(async (cookiesToUse?: string) => {
-    const cookiesToParse = cookiesToUse || cookies;
-    if (!cookiesToParse) {
+  const loadUserData = useCallback(async () => {
+    const sidToUse = sid.trim();
+    if (!sidToUse) {
       setState(prev => ({ ...prev, user: null, sections: [], selectedSections: [] }));
       return;
     }
@@ -65,9 +82,14 @@ function App() {
     try {
       setState(prev => ({ ...prev, status: 'loading' }));
       
-      const cookiesObj = parseCookies(cookiesToParse);
+      let currentCookies = fullCookies.sid ? fullCookies : createCookiesFromSid(sidToUse);
       
-      let html = await fetchPage(config.baseUrl, cookiesObj);
+      const response = await fetchPageWithCookies(config.baseUrl, currentCookies);
+      let html = response.html;
+      const newCookies = mergeCookies(currentCookies, response.cookies);
+      currentCookies = newCookies;
+      setFullCookies(currentCookies);
+      
       let username = extractUsername(config.baseUrl, html);
       let isCurrentUser = checkIsCurrentUser(html);
       
@@ -78,6 +100,7 @@ function App() {
       console.log('Extracted username from main:', username);
       console.log('Is current user:', isCurrentUser);
       console.log('CK:', ck);
+      console.log('Cookies from response:', response.cookies);
       
       let avatarUrl: string | undefined;
       
@@ -87,7 +110,11 @@ function App() {
           profileUrl = addCKToUrl(profileUrl, ck);
         }
         try {
-          html = await fetchPage(profileUrl, cookiesObj);
+          const profileResponse = await fetchPageWithCookies(profileUrl, currentCookies);
+          html = profileResponse.html;
+          const profileCookies = mergeCookies(currentCookies, profileResponse.cookies);
+          currentCookies = profileCookies;
+          setFullCookies(currentCookies);
           console.log('Loaded profile page:', profileUrl);
           avatarUrl = extractAvatarUrl(html);
           console.log('Avatar URL from profile page:', avatarUrl);
@@ -105,11 +132,7 @@ function App() {
       
       const userData = { username, isCurrentUser, avatarUrl };
       saveUser(userData);
-      saveCookies(cookiesToParse);
-      
-      if (cookiesToUse && cookiesToUse !== cookies) {
-        setCookies(cookiesToUse);
-      }
+      saveCookies(JSON.stringify(currentCookies));
       
       setState(prev => ({
         ...prev,
@@ -126,10 +149,11 @@ function App() {
         errors: [{ file: 'Load', error: errorMsg }],
       }));
     }
-  }, [cookies]);
+  }, [sid, fullCookies]);
 
   const handleLogout = useCallback(() => {
-    setCookies('');
+    setSid('');
+    setFullCookies({});
     setState({
       user: null,
       sections: [],
@@ -155,7 +179,7 @@ function App() {
     if (!state.user || state.selectedSections.length === 0) return;
 
     try {
-      const cookiesObj = parseCookies(cookies);
+      const cookiesObj = fullCookies.sid ? fullCookies : createCookiesFromSid(sid);
       setState(prev => ({ 
         ...prev, 
         status: 'scanning', 
@@ -169,6 +193,8 @@ function App() {
       const allFiles: File[] = [];
       const folderMap = new Map<string, { folder: any; sectionId: string }>();
 
+      let updatedCookies = cookiesObj;
+      
       for (const sectionId of state.selectedSections) {
         const section = state.sections.find(s => s.id === sectionId);
         if (!section) {
@@ -177,7 +203,11 @@ function App() {
         }
 
         console.log(`Scanning section: ${section.name} (${section.id})`);
-        const rootFolder = await scanFolder(section.url, cookiesObj);
+        const rootFolder = await scanFolder(section.url, updatedCookies, '', (newCookies) => {
+          updatedCookies = newCookies;
+          setFullCookies(newCookies);
+          saveCookies(JSON.stringify(newCookies));
+        });
         const files = collectAllFiles(rootFolder);
         
         console.log(`Section ${section.name}: found ${files.length} files`);
@@ -233,7 +263,7 @@ function App() {
         errors: [...prev.errors, { file: 'Scan', error: errorMsg }],
       }));
     }
-  }, [cookies, state.user, state.sections, state.selectedSections]);
+  }, [sid, fullCookies, state.user, state.sections, state.selectedSections]);
 
   const handleResetScan = useCallback(() => {
     setState(prev => ({
@@ -380,7 +410,7 @@ function App() {
     }
 
     try {
-      const cookiesObj = parseCookies(cookies);
+      const cookiesObj = fullCookies.sid ? fullCookies : createCookiesFromSid(sid);
       setState(prev => ({ ...prev, status: 'downloading' }));
 
       const filesMap = new Map<string, ArrayBuffer>();
@@ -402,12 +432,12 @@ function App() {
         errors: [...prev.errors, { file: 'General', error: errorMsg }],
       }));
     }
-  }, [cookies, state.scannedFiles, state.rootFolder, state.saveMode, state.fileProgress, downloadSingleFile]);
+  }, [sid, fullCookies, state.scannedFiles, state.rootFolder, state.saveMode, state.fileProgress, downloadSingleFile]);
 
   const canScan = state.user && state.selectedSections.length > 0 && state.status === 'idle';
   const canDownload = state.scannedFiles.length > 0 && state.status === 'idle';
   const inProgress = ['loading', 'scanning', 'downloading', 'saving'].includes(state.status);
-  const canLoad = cookies && !state.user && state.status === 'idle';
+  const canLoad = sid.trim() && !state.user && state.status === 'idle';
   const showNewYearBg = isNewYearPeriod();
 
   return (
@@ -452,16 +482,21 @@ function App() {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Cookies
+                      SID
                     </label>
-                    <textarea
-                      value={cookies}
-                      onChange={(e) => setCookies(e.target.value)}
-                      placeholder="Netscape Cookie File формат или name1=value1; name2=value2"
+                    <input
+                      type="text"
+                      value={sid}
+                      onChange={(e) => setSid(e.target.value)}
+                      placeholder="Введите значение cookie sid"
                       disabled={inProgress || !!state.user}
-                      rows={6}
-                      className="w-full px-4 py-2 bg-dark-hover border border-dark-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 resize-none font-mono text-sm"
+                      className="w-full px-4 py-2 bg-dark-hover border border-dark-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 font-mono text-sm"
                     />
+                    {Object.keys(fullCookies).length > 1 && (
+                      <p className="text-xs text-gray-400 mt-2">
+                        Получено cookies: {Object.keys(fullCookies).join(', ')}
+                      </p>
+                    )}
                   </div>
 
                   {!state.user && (
@@ -540,7 +575,7 @@ function App() {
                   const file = state.scannedFiles.find(f => f.id === fileId);
                   if (!file || !state.directoryHandle) return;
                   
-                  const cookiesObj = parseCookies(cookies);
+                  const cookiesObj = fullCookies.sid ? fullCookies : createCookiesFromSid(sid);
                   const filesMap = new Map<string, ArrayBuffer>();
                   
                   downloadSingleFile(file, cookiesObj, filesMap, state.directoryHandle, true).catch(() => {

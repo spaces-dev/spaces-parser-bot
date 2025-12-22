@@ -26,6 +26,18 @@ export function parseCookies(cookieString: string): Record<string, string> {
   return cookies;
 }
 
+export function createCookiesFromSid(sid: string): Record<string, string> {
+  return { sid: sid.trim() };
+}
+
+export function mergeCookies(...cookieObjects: Record<string, string>[]): Record<string, string> {
+  const merged: Record<string, string> = {};
+  cookieObjects.forEach(cookies => {
+    Object.assign(merged, cookies);
+  });
+  return merged;
+}
+
 export function formatCookies(cookies: Record<string, string>): string {
   return Object.entries(cookies)
     .map(([name, value]) => `${name}=${value}`)
