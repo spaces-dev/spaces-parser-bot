@@ -15,7 +15,7 @@ export const useBackupStore = defineStore('backup', () => {
   const rootFolder = shallowRef<Folder | null>(null)
   const scannedFiles = shallowRef<File[]>([])
   const currentPage = ref(1)
-  const filesPerPage = ref(20)
+  const filesPerPage = ref(config.pagination.filesPerPage)
   const totalFiles = ref(0)
   const downloadedFiles = ref(0)
   const totalSize = ref(0)

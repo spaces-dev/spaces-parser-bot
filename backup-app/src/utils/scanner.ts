@@ -32,7 +32,7 @@ export async function scanFolder(
   
   if (maxPages && maxPages > 1) {
     for (let page = 2; page <= maxPages; page++) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, config.delays.betweenRequests));
       const pageUrl = addPagination(url, page);
       console.log(`Scanning page ${page}: ${pageUrl}`);
       const pageResponse = await fetchPageWithCookies(pageUrl, currentCookies);

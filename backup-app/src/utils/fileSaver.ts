@@ -61,7 +61,7 @@ export async function downloadAndSaveFileOnServer(
       saveMode,
       username,
     }, {
-      timeout: 300000,
+      timeout: config.timeouts.download,
       onUploadProgress: (progressEvent) => {
         if (onProgress && progressEvent.total) {
           const progress = (progressEvent.loaded / progressEvent.total) * 100;

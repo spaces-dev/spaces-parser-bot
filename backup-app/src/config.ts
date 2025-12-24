@@ -8,6 +8,19 @@ export const config = {
     25: 'video',
     5: 'files',
   } as const,
+
+  timeouts: {
+    fetch: 180000, // 3 minutes
+    download: 300000, // 5 minutes
+  } as const,
+
+  delays: {
+    betweenRequests: 300, // milliseconds
+  } as const,
+
+  pagination: {
+    filesPerPage: 20,
+  } as const,
 } as const;
 
 export function buildSpacesUrl(

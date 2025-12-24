@@ -25,7 +25,7 @@ export async function fetchPageWithCookies(
     url,
     cookies,
   }, {
-    timeout: 180000,
+    timeout: config.timeouts.fetch,
   });
   return {
     html: response.data.html || response.data,
@@ -43,7 +43,7 @@ export async function downloadFileBuffer(
     { url, cookies },
     {
       responseType: 'arraybuffer',
-      timeout: 300000,
+      timeout: config.timeouts.download,
       onDownloadProgress: (progressEvent) => {
         if (onProgress && progressEvent.total) {
           onProgress(progressEvent.loaded, progressEvent.total);

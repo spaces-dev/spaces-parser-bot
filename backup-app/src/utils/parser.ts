@@ -66,7 +66,9 @@ export function extractUsername(url: string, html: string): string {
         console.log('Found username from player_params:', params.user);
         return params.user;
       }
-    } catch {}
+    } catch (error) {
+      console.error('Failed to parse player params:', error);
+    }
   }
   
   console.log('Username not found');
