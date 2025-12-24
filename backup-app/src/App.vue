@@ -67,7 +67,7 @@
                   v-if="!authStore.user"
                   @click="authStore.loadUserData()"
                   :disabled="!canLoad || backupStore.inProgress"
-                  class="px-4 py-2 disabled:bg-gray-600 disabled:cursor-not-allowed mt-5 text-white text-sm font-normal rounded-md transition-colors"
+                  class="px-4 py-2 cursor-pointer disabled:bg-gray-600 disabled:cursor-not-allowed mt-5 text-white text-sm font-normal rounded-md transition-colors"
                   :style="{ backgroundColor: '#61a961' }"
                   :class="{ 'hover:opacity-90': canLoad && !backupStore.inProgress }"
                 >
@@ -104,7 +104,7 @@
                     <button
                       @click="handleLoadProfileSections"
                       :disabled="!profileUrl || backupStore.inProgress || !authStore.user"
-                      class="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+                      class="px-4 py-2 cursor-pointer bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
                     >
                       Загрузить разделы
                     </button>
@@ -126,7 +126,7 @@
                     <button
                       @click="handleScanProfile"
                       :disabled="backupStore.selectedProfileSections.length === 0 || backupStore.inProgress"
-                      class="mt-3 w-full px-4 py-2 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+                      class="mt-3 w-full px-4 py-2 cursor-pointer disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
                       :style="{ backgroundColor: '#4563a1' }"
                       :class="{ 'hover:opacity-90': backupStore.selectedProfileSections.length > 0 && !backupStore.inProgress }"
                     >
@@ -140,7 +140,7 @@
                     v-if="backupStore.scannedFiles.length === 0"
                     @click="backupStore.scan()"
                     :disabled="!backupStore.canScan || backupStore.inProgress"
-                    class="flex-1 px-6 py-3 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+                    class="flex-1 px-6 py-3 cursor-pointer disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
                     :style="{ backgroundColor: '#4563a1' }"
                     :class="{ 'hover:opacity-90': !backupStore.inProgress && backupStore.canScan }"
                   >
@@ -150,14 +150,14 @@
                     <button
                       @click="backupStore.resetScan()"
                       :disabled="backupStore.inProgress"
-                      class="px-4 py-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+                      class="px-4 py-3 cursor-pointer bg-gray-600 hover:bg-gray-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
                     >
                       Сбросить
                     </button>
                     <button
                       @click="backupStore.download()"
                       :disabled="!backupStore.canDownload || backupStore.inProgress"
-                      class="flex-1 px-6 py-3 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+                      class="flex-1 px-6 py-3 cursor-pointer disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
                       :style="{ backgroundColor: '#61a961' }"
                       :class="{ 'hover:opacity-90': backupStore.canDownload && !backupStore.inProgress }"
                     >
