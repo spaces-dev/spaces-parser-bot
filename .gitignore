@@ -137,3 +137,11 @@ Thumbs.db
 # Backup app downloads
 backup-app/downloads/
 
+# Node.js / Yarn
+node_modules/
+backup-app/node_modules/
+.yarn/
+backup-app/.yarn/
+.yarnrc.yml
+backup-app/.yarnrc.yml
+
