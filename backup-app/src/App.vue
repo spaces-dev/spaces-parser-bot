@@ -214,7 +214,7 @@
               </div>
 
               <div v-if="backupStore.status === 'completed' && backupStore.downloadDuration !== null" class="text-sm text-green-400">
-                Время скачивания: {{ formatDuration(backupStore.downloadDuration) }}
+                Время скачивания заняло: {{ formatDuration(backupStore.downloadDuration) }}
               </div>
             </div>
           </div>
@@ -285,12 +285,22 @@ const displaySid = computed({
 })
 
 function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
   const secs = seconds % 60
-  if (minutes > 0) {
-    return `${minutes} мин ${secs} сек`
+  
+  const parts: string[] = []
+  if (hours > 0) {
+    parts.push(`${hours} ч`)
   }
-  return `${secs} сек`
+  if (minutes > 0) {
+    parts.push(`${minutes} мин`)
+  }
+  if (secs > 0 || parts.length === 0) {
+    parts.push(`${secs} сек`)
+  }
+  
+  return parts.join(' ')
 }
 
 function handleLogout() {
