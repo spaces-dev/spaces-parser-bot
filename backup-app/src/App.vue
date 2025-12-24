@@ -150,15 +150,15 @@
                     <button
                       @click="backupStore.resetScan()"
                       :disabled="backupStore.inProgress"
-                      class="px-4 py-3 cursor-pointer bg-gray-600 hover:bg-gray-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+                      class="px-4 py-3 cursor-pointer bg-gray-600 hover:bg-gray-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
                     >
                       Сбросить
                     </button>
                     <button
                       @click="backupStore.download()"
                       :disabled="!backupStore.canDownload || backupStore.inProgress"
-                      class="flex-1 px-6 py-3 cursor-pointer disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
-                      :style="{ backgroundColor: '#61a961' }"
+                      class="flex-1 px-6 py-3 cursor-pointer disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+                      :style="{ backgroundColor: 'rgb(66 102 66)' }"
                       :class="{ 'hover:opacity-90': backupStore.canDownload && !backupStore.inProgress }"
                     >
                       <template v-if="backupStore.status === 'downloading'">Скачивание...</template>
