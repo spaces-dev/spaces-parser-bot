@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { formatCookies } from '@/utils/cookies';
 import { config } from '@/config';
 
 export interface FetchResponse {
@@ -53,8 +52,4 @@ export async function downloadFileBuffer(
     }
   );
   return response.data;
-}
-
-export function formatCookiesForDisplay(cookies: Record<string, string>): string {
-  return formatCookies(cookies);
 }

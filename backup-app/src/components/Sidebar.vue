@@ -60,7 +60,6 @@
 <script setup lang="ts">
 import { ref, defineAsyncComponent } from 'vue'
 import type { User } from '@/types'
-import { clearCookies } from '@/utils/storage'
 
 const DebugConsole = defineAsyncComponent(() => import('./DebugConsole.vue'))
 
@@ -76,7 +75,6 @@ const emit = defineEmits<{
 const isConsoleOpen = ref(false)
 
 function handleLogout() {
-  clearCookies()
   emit('logout')
 }
 

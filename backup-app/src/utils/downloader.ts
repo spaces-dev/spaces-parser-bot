@@ -1,7 +1,5 @@
-import { downloadFileBuffer, fetchPage } from '@/utils/http';
-import { buildSpacesUrl } from '@/config';
+import { fetchPage } from '@/utils/http';
 import * as cheerio from 'cheerio';
-import type { File } from '@/types';
 
 
 export async function extractDownloadUrlFromFilePage(
@@ -62,45 +60,3 @@ export async function extractDownloadUrlFromFilePage(
   }
 }
 
-
-async function resolveDownloadUrl(
-  file: File,
-  cookies: Record<string, string>
-): Promise<string> {
-  let url = file.directUrl || file.downloadUrl;
-
-  const needsExtraction = !url || url.includes('/view/') || !url.includes('/download/');
-
-  if (!needsExtraction) {
-    return url;
-  }
-
-  const viewUrl = url?.includes('/view/')
-    ? url
-    : buildSpacesUrl(file.type, file.id, 'view');
-
-  console.log(
-    `File ${file.name}${file.extension} (type: ${file.type}) has no direct download link, ` +
-    `fetching from page: ${viewUrl}`
-  );
-
-  const extractedUrl = await extractDownloadUrlFromFilePage(viewUrl, cookies);
-
-  if (extractedUrl) {
-    return extractedUrl;
-  }
-
-  console.warn(
-    `Could not extract download URL for file ${file.name}${file.extension}, using fallback`
-  );
-  return buildSpacesUrl(file.type, file.id, 'download');
-}
-
-export async function downloadFile(
-  file: File,
-  cookies: Record<string, string>,
-  onProgress?: (loaded: number, total: number) => void
-): Promise<ArrayBuffer> {
-  const url = await resolveDownloadUrl(file, cookies);
-  return downloadFileBuffer(url, cookies, onProgress);
-}

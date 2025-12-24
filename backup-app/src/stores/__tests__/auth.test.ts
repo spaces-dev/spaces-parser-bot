@@ -57,7 +57,7 @@ describe('useAuthStore', () => {
     expect(store.user).toBeNull()
     expect(store.sections).toEqual([])
     expect(store.selectedSections).toEqual([])
-    expect(storage.clearCookies).toHaveBeenCalled()
+    expect(storage.clearAllAuthData).toHaveBeenCalled()
   })
 
   it('should update selected sections', () => {

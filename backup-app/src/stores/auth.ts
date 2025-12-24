@@ -22,9 +22,7 @@ import {
   loadUser,
   saveSections,
   loadSections,
-  clearCookies,
   clearAllAuthData,
-  migrateOldKeys,
 } from '@/utils/storage'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -38,7 +36,6 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!user.value)
 
   async function loadSavedData() {
-    migrateOldKeys()
     const savedCookies = loadCookies()
     const savedUser = loadUser()
     const savedSections = loadSections()
