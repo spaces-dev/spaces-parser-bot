@@ -212,6 +212,10 @@
               <div v-if="backupStore.currentFile" class="text-sm text-gray-400">
                 Текущий файл: <span class="text-white">{{ backupStore.currentFile }}</span>
               </div>
+
+              <div v-if="backupStore.status === 'completed' && backupStore.downloadDuration !== null" class="text-sm text-green-400">
+                Время скачивания: {{ formatDuration(backupStore.downloadDuration) }}
+              </div>
             </div>
           </div>
 
@@ -279,6 +283,15 @@ const displaySid = computed({
     authStore.sid = value
   },
 })
+
+function formatDuration(seconds: number): string {
+  const minutes = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  if (minutes > 0) {
+    return `${minutes} мин ${secs} сек`
+  }
+  return `${secs} сек`
+}
 
 function handleLogout() {
   authStore.logout()
